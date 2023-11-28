@@ -68,6 +68,7 @@ out geom;
 - Notes:
   - OSM started in 2007 and coverage increased in years afterwards
   - Accuracy or coverage at a point in time could be estimated by graph of % of roads with a `maxspeed` as a ratio of all roads
+  - Could calibrate based on 50/40km changes and school zone changes
 - Todo: filter out ways that aren't roads (eg some railways)
 
 ```
