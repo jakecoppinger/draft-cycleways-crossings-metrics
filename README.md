@@ -35,6 +35,9 @@ out geom;
 
 # How how number of <= 30kmh (or shared street) changed over time
 
+- Notes:
+  - OSM started in 2007 and coverage increased in years afterwards
+  - Accuracy or coverage at a point in time could be estimated by graph of % of roads with a `maxspeed` as a ratio of all roads
 - Todo: filter out ways that aren't roads (eg some railways)
 
 ```
