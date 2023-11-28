@@ -39,7 +39,7 @@ out body;
 out meta qt;
 ```
 
-https://overpass-turbo.eu/?Q=%5Bout%3Ajson%5D%5Btimeout%3A25%5D%3B%0A%28%0A++way%5B%22maxspeed%22%3D%2210%22%5D%5B%22highway%22%5D%28%7B%7Bbbox%7D%7D%29%3B%0A++way%5B%22maxspeed%22%3D%2220%22%5D%5B%22highway%22%5D%28%7B%7Bbbox%7D%7D%29%3B%0A++way%5B%22maxspeed%22%3D%2230%22%5D%5B%22highway%22%5D%28%7B%7Bbbox%7D%7D%29%3B%0A++way%5B%22highway%22%3D%22living_street%22%5D%5B%21%22maxspeed%22%5D%28%7B%7Bbbox%7D%7D%29%3B%0A%29%3B%0A%0Aout+geom%3B&C=-33.907038%3B151.218224%3B12&R=
+https://overpass-turbo.eu/s/1E2I
 
 
 ## In viewport (faster)
