@@ -1,4 +1,8 @@
-WIP
+Work in progress!
+
+## Notes on overpass queries
+- Queries that contain `({{bbox}});` will run based on the current location you're viewing. If you pan/zoom the map and press run again you will get new data.
+- Queries that include `map_to_area` will be locked to a particular `relation` (a specified boundary). You can search for these relations on OSM, for example the City of Sydney is https://www.openstreetmap.org/relation/1251066.
 
 # Overpass turbo query for roads <=30kmh or living street
 
