@@ -38,8 +38,41 @@ export function calculateWayLength(way: OSMWay): number {
   return totalDistance;
 }
 
+export function generateWayLengthLookup(rawData: OSMWay[]): Record<number, number> {
+  const wayLengthLookup: Record<number, number> = {};
+  for(let i = 0; i < rawData.length; i++) {
+    const way = rawData[i];
+    wayLengthLookup[way.id] = calculateWayLength(way);
+  }
+  return wayLengthLookup;
+}
+
 export function getLengthOfAllWays(rawData: OSMWay[]): number {
   return rawData
     .map((element) => calculateWayLength(element as OSMWay))
     .reduce((a, b) => a + b, 0);
+}
+export function getLengthOfAllWaysInLookup(wayLengthLookup: Record<number, number>): number {
+  return Object.values(wayLengthLookup)
+    .reduce((a, b) => a + b, 0);
+}
+
+
+export interface WayLengthStat {
+  name: string;
+  length: number;
+}
+/** Function that takes the raw data and way length lookup record object and returns an array.
+ * The array contains the name of each way (if it exists) and the length of the way in descending order,
+ * almost like a CSV.
+ */
+export function generateWayLengthStats(rawData: OSMWay[], wayLengthLookup: Record<number, number>): WayLengthStat[] {
+  const wayLengthStats: WayLengthStat[] = [];
+  for(let i = 0; i < rawData.length; i++) {
+    const way = rawData[i];
+    const length = wayLengthLookup[way.id];
+    const name = way.tags.name || "";
+    wayLengthStats.push({name, length});
+  }
+  return wayLengthStats;
 }

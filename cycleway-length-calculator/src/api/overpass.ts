@@ -15,7 +15,6 @@ rel(${relationId});map_to_area->.region;
   way(area.region)["highway"="living_street"][!"maxspeed"]["access"!="private"];
 );
 out geom;
-
 `
 
 export async function overpassTurboRequest(request: string): Promise<(OSMNode | OSMWay)[]> {
