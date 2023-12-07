@@ -29,19 +29,12 @@ Where `1251066` is the OSM relation ID for the City of Sydney:
 
 ```
 [out:json];
+rel(1251066);map_to_area->.region;
 (
-  rel(1251066);map_to_area->.region;
-  (
-    way(area.region)["maxspeed"="5"]["highway"]["access"!="private"];
-    way(area.region)["maxspeed"="10"]["highway"]["access"!="private"];
-    way(area.region)["maxspeed"="20"]["highway"]["access"!="private"];
-    way(area.region)["maxspeed"="30"]["highway"]["access"!="private"];
-    way(area.region)["highway"="living_street"][!"maxspeed"]["access"!="private"];
-  )->.ways;
-
+  way(area.region)["maxspeed"~"^(5|10|20|30)$"]["highway"]["access"!="private"];
+  way(area.region)["highway"="living_street"][!"maxspeed"]["access"!="private"];
 );
-.ways out geom;
-
+out geom;
 ```
 
 # Zebra crossings
