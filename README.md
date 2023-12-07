@@ -4,13 +4,16 @@ Work in progress!
 - Queries that contain `({{bbox}});` will run based on the current location you're viewing. If you pan/zoom the map and press run again you will get new data.
 - Queries that include `map_to_area` will be locked to a particular `relation` (a specified boundary). You can search for these relations on OSM, for example the City of Sydney is https://www.openstreetmap.org/relation/1251066.
 
-# Overpass turbo query for roads <=30kmh or living street
+# Roads <=30kmh or living street (Overpass Turbo queries)
 
-https://overpass-turbo.eu/s/1E2G
+## In viewport
+
+https://overpass-turbo.eu/s/1Eqj
 
 ```
 [out:json][timeout:25];
 (
+  way["maxspeed"="5"]["highway"]({{bbox}});
   way["maxspeed"="10"]["highway"]({{bbox}});
   way["maxspeed"="20"]["highway"]({{bbox}});
   way["maxspeed"="30"]["highway"]({{bbox}});
@@ -18,6 +21,27 @@ https://overpass-turbo.eu/s/1E2G
 );
 
 out geom;
+```
+
+## In council area
+
+Where `1251066` is the OSM relation ID for the City of Sydney:
+
+```
+[out:json];
+(
+  rel(1251066);map_to_area->.region;
+  (
+    way(area.region)["maxspeed"="5"]["highway"]["access"!="private"];
+    way(area.region)["maxspeed"="10"]["highway"]["access"!="private"];
+    way(area.region)["maxspeed"="20"]["highway"]["access"!="private"];
+    way(area.region)["maxspeed"="30"]["highway"]["access"!="private"];
+    way(area.region)["highway"="living_street"][!"maxspeed"]["access"!="private"];
+  )->.ways;
+
+);
+.ways out geom;
+
 ```
 
 # Zebra crossings
