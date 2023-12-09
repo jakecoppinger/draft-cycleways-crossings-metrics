@@ -5,14 +5,6 @@ import dataByCouncil from "../data/data-by-council.json";
 import { LinkToOverpassQuery } from "../components/LinkToOverpassQuery";
 
 export const IndexPageComponent = () => {
-  // const [totalLength, setTotalLength] = useState<number>(0);
-
-  // useEffect(() => {
-  //   async function fetchData() {
-  //   }
-  //   fetchData();
-  // }, []);
-
   return (
     <div>
       <h1>Hello!</h1>
@@ -20,6 +12,7 @@ export const IndexPageComponent = () => {
     </div>
   );
 };
+
 
 const CouncilTable = ({
   dataByCouncil,
@@ -31,9 +24,10 @@ const CouncilTable = ({
       <thead>
         <tr>
           <th>Council name</th>
-          <th>Shared and dedicated paths length / roads (%)</th>
+          <th>Shared + dedicated cycleways + safe roads / roads (%)</th>
           <th>Dedicated cycleways length / roads (%)</th>
-          <th>Roads (km)</th>
+          <th>Surface roads (non-offramp/link) (km)</th>
+          <th>{'Safe strets (<=30kmh) (km)'}</th>
           <th>Dedicated cycleways (km)</th>
           <th>Shared paths (km)</th>
           <th>On road lanes ("dooring lane") (km)</th>
@@ -52,7 +46,7 @@ const CouncilTable = ({
 
 const CouncilTableRow = ({ row }: { row: GeneratedCouncilData }) => {
   const {
-    relationInfoQuery,
+    // relationInfoQuery,
     councilName,
     dedicatedCyclewaysLength,
     dedicatedCyclewaysQuery,
@@ -64,22 +58,27 @@ const CouncilTableRow = ({ row }: { row: GeneratedCouncilData }) => {
     onRoadCycleLanesLength,
 
     cyclewaysToRoadsRatio,
-    sharedAndCyclewaysToRoadsRatio,
+    safePathsToRoadsRatio,
     underConstructionCyclewaysLength,
     underConstructionCyclewaysQuery,
     proposedCyclewaysLength,
-    proposedCyclewaysQuery
+    proposedCyclewaysQuery,
+    safeStreetsLength,
+    safeStreetsQuery,
+    wikipedia
   } = row;
 
   return (
     <tr>
       <td>
-        <LinkToOverpassQuery queryStr={relationInfoQuery}>
-          {councilName}
-        </LinkToOverpassQuery>
+        {/* <LinkToOverpassQuery queryStr={relationInfoQuery}> */}
+          {councilName}{" "}
+        {/* </LinkToOverpassQuery>{" "} */}
+        {wikipedia ? <WikipediaLink articleName={wikipedia}>(Wikipedia)</WikipediaLink> : null}
+      
       </td>
 
-      <td>{formatRatio(sharedAndCyclewaysToRoadsRatio)}</td>
+      <td>{formatRatio(safePathsToRoadsRatio)}</td>
       <td>{formatRatio(cyclewaysToRoadsRatio)}</td>
 
       <td>
@@ -87,6 +86,12 @@ const CouncilTableRow = ({ row }: { row: GeneratedCouncilData }) => {
           {formatLengthInKm(roadsLength)}
         </LinkToOverpassQuery>
       </td>
+      <td>
+        <LinkToOverpassQuery queryStr={safeStreetsQuery}>
+          {formatLengthInKm(safeStreetsLength)}
+        </LinkToOverpassQuery>
+      </td>
+
       <td>
         <LinkToOverpassQuery queryStr={dedicatedCyclewaysQuery}>
           {formatLengthInKm(dedicatedCyclewaysLength)}
@@ -127,4 +132,15 @@ function formatRatio(ratio: number): string {
 /** Takes an area in square metres and formats it in square kilometres  */
 function formatArea(areaInSquareMetres: number): string {
   return `${(areaInSquareMetres / 1000000).toFixed(1)} km²`;
+}
+function WikipediaLink({ articleName, children }: { articleName: string, children: React.ReactNode }) {
+  return (
+    <a
+      href={`https://en.wikipedia.org/wiki/${articleName}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {children}
+    </a>
+  );
 }

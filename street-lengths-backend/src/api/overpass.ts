@@ -11,7 +11,7 @@ export const generateSafeStreetsQuery = (relationId: number) => `
   [out:json];
 rel(${relationId});map_to_area->.region;
 (
-  way(area.region)["maxspeed"~"^(10|20|30})$"]["highway"]["access"!="private"];
+  way(area.region)["maxspeed"~"^(10|20|30)$"]["highway"]["access"!="private"];
   way(area.region)["highway"="living_street"][!"maxspeed"]["access"!="private"];
 );
 out geom;
@@ -24,7 +24,7 @@ export const generateDedicatedCyclewaysQuery = (relationId: number) => `
   [out:json];
 rel(${relationId});map_to_area->.region;
 (
-  way(area.region)["highway"~"cycleway"]["segregated"!="no"]["foot"!~"designated|yes"];
+  way(area.region)["highway"~"cycleway"]["segregated"!="no"]["foot"!~"designated|yes"]["surface"!="dirt"]["access"!="no"];
 );
 out geom;
 `;
@@ -48,10 +48,11 @@ export const generateRoadsQuery = (relationId: number) => `
 [out:json];
 rel(${relationId});map_to_area->.region;
 (
-  way(area.region)["highway"~"motorway|trunk|primary|secondary|tertiary|unclassified|residential|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link|living_street|service"]["access"!="private"]["service"!="driveway"]["level"!~"-1|-2"];
+  way(area.region)["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service})$"]["access"!="private"]["service"!="driveway"]["level"!~"-"]["layer"!~"-"];
 );
 out geom;
-  `;
+`;
+  // way(area.region)["highway"~"motorway|trunk|primary|secondary|tertiary|unclassified|residential|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link|living_street|service"]["access"!="private"]["service"!="driveway"]["level"!~"-1|-2"];
 
 export const generateOnRoadCycleLanes = (relationId: number) => `
 [out:json];
@@ -79,6 +80,15 @@ rel(${relationId});map_to_area->.region;
   way(area.region)["highway"="construction"]["construction"="cycleway"];
 );
 out geom;
+`;
+
+export const generateAllCouncilsQuery = (relationId: number) => `
+[out:json][timeout:25];
+rel(${relationId});map_to_area->.searchArea;
+(
+  relation["admin_level"="6"](area.searchArea);
+);
+out tags;
 `;
 
 export const generateRelationInfoQuery = (relationId: number) => `
@@ -123,7 +133,7 @@ export async function cachedOverpassTurboRequest(input: string): Promise<any> {
 export async function overpassTurboRequest(request: string): Promise<(OSMNode | OSMWay | OSMRelation)[]> {
   const apiUrl = 'https://488e-103-85-36-185.ngrok-free.app/api/interpreter'
   // const apiUrl = 'https://overpass-api.de/api/interpreter';
-  console.log("Started POST request...");
+  console.log(`Started POST request at ${new Date().toISOString()}`);
 
   const response = await fetch(apiUrl, {
     method: 'POST',

@@ -1,12 +1,14 @@
+import * as turf from '@turf/turf';
+import * as fs from 'fs';
+
 import {
   cachedOverpassTurboRequest, generateDedicatedCyclewaysQuery,
-  generateOnRoadCycleLanes, generateProposedCyclewaysQuery, generateRelationInfoQuery, generateRelationPointsQuery, generateRoadsQuery, generateSharedPathsQuery, generateUnderConstructionCyclewaysQuery,
+  generateAllCouncilsQuery,
+  generateOnRoadCycleLanes, generateProposedCyclewaysQuery, generateRelationInfoQuery, generateRelationPointsQuery, generateRoadsQuery, generateSafeStreetsQuery, generateSharedPathsQuery, generateUnderConstructionCyclewaysQuery,
 } from "./api/overpass.js";
 import { GeneratedCouncilData, OSMNode, OSMRelation, OSMWay } from "./types.js";
 import { getLengthOfAllWays } from "./utils/osm-geometry-utils.js";
-import * as turf from '@turf/turf';
 
-import * as fs from 'fs';
 
 /**
  * Function that takes an object and saves it to a JSON file.
@@ -28,7 +30,7 @@ const councilOsmRelationIds =
 async function generateCouncilArea(relationId: number): Promise<number> {
   const relationPoints = await cachedOverpassTurboRequest(generateRelationPointsQuery(relationId)) as (OSMNode | OSMWay)[];
   const coords = (relationPoints
-  .filter((node) => node.type === 'node') as OSMNode[])
+    .filter((node) => node.type === 'node') as OSMNode[])
     .filter((node) => {
       if (node.lat && node.lon) {
         return true
@@ -36,18 +38,27 @@ async function generateCouncilArea(relationId: number): Promise<number> {
         console.log(`Node ${node.id} is missing lat or lon`);
         return false
       }
-      })
+    })
     .map((node) => [node.lon, node.lat])
   coords.push(coords[0]);
   const polygon = turf.polygon([coords]);
   const councilArea = turf.area(polygon);
   return councilArea;
 }
+
+
 async function main() {
 
+  const allCouncilsQuery = generateAllCouncilsQuery(2316593);
+  const allCouncilRaw = await cachedOverpassTurboRequest(allCouncilsQuery) as OSMRelation[];
+  const allCouncils = allCouncilRaw.map(
+    (relation) => ({ relationId: relation.id, name: relation.tags.name, wikipedia: relation.tags.wikipedia }));
+  
+
   let dataByCouncil: any = [];
-  for (let i = 0; i < councilOsmRelationIds.length; i++) {
-    const relationId = councilOsmRelationIds[i];
+  for (let i = 0; i < allCouncils.length; i++) {
+    const council = allCouncils[i];
+    const {relationId, wikipedia} = council;
 
     const councilArea = await generateCouncilArea(relationId);
 
@@ -83,9 +94,14 @@ async function main() {
       await cachedOverpassTurboRequest(proposedCyclewaysQuery) as OSMWay[]
     )
 
+    const safeStreetsQuery = generateSafeStreetsQuery(relationId);
+    const safeStreetsLength = getLengthOfAllWays(
+      await cachedOverpassTurboRequest(safeStreetsQuery) as OSMWay[]
+    )
+
 
     const cyclewaysToRoadsRatio = dedicatedCyclewaysLength / roadsLength;
-    const sharedAndCyclewaysToRoadsRatio = (dedicatedCyclewaysLength + sharedPathsLength) / roadsLength;
+    const safePathsToRoadsRatio = (dedicatedCyclewaysLength + sharedPathsLength + safeStreetsLength) / roadsLength;
 
     // const waysLength = generateWayLengthLookup(rawData);
     // const waysStats = generateWayLengthStats(rawData, waysLength);
@@ -93,17 +109,24 @@ async function main() {
     const generatedCouncilData: GeneratedCouncilData = {
       councilName, relationId, dedicatedCyclewaysLength, roadsLength,
       onRoadCycleLanesLength, sharedPathsLength,
-      dedicatedCyclewaysQuery, roadsQuery, onRoadCycleLanesQuery, sharedPathsQuery, relationInfoQuery,
-      cyclewaysToRoadsRatio, sharedAndCyclewaysToRoadsRatio, councilArea,
-      underConstructionCyclewaysQuery, underConstructionCyclewaysLength, proposedCyclewaysLength, proposedCyclewaysQuery
+      dedicatedCyclewaysQuery, roadsQuery, onRoadCycleLanesQuery, sharedPathsQuery,
+      // , relationInfoQuery,
+      cyclewaysToRoadsRatio, safePathsToRoadsRatio, councilArea,
+      underConstructionCyclewaysQuery, underConstructionCyclewaysLength, proposedCyclewaysLength, proposedCyclewaysQuery,
+      safeStreetsQuery, safeStreetsLength,wikipedia
     };
 
     dataByCouncil.push(generatedCouncilData);
   }
 
   const jsonRelativeOutputPath = '../cycleway-length-calculator/src/data/'
+
+  const sortedDataByCouncil = dataByCouncil.sort((a: any, b: any) => {
+    return b.cyclewaysToRoadsRatio - a.cyclewaysToRoadsRatio;
+  });
+
   await saveObjectToJsonFile(
-    dataByCouncil,
+    sortedDataByCouncil,
     `${jsonRelativeOutputPath}data-by-council.json`,
   );
   console.log("Saved data-by-council.json");

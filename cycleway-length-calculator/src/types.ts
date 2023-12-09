@@ -1,5 +1,6 @@
 
 
+
 export interface GeneratedCouncilData {
   "councilName": string;
   "relationId": number;
@@ -11,9 +12,10 @@ export interface GeneratedCouncilData {
   "roadsQuery": string;
   "onRoadCycleLanesQuery": string;
   "sharedPathsQuery": string;
-  "relationInfoQuery": string;
+  // "relationInfoQuery": string;
   cyclewaysToRoadsRatio: number,
-  sharedAndCyclewaysToRoadsRatio: number
+  /** Includes dedicated cycleways, shared paths, and safe streets */
+  safePathsToRoadsRatio: number
 
   /** In sq metres. Not yet working */
   councilArea: number
@@ -22,8 +24,12 @@ export interface GeneratedCouncilData {
   underConstructionCyclewaysLength: number
   proposedCyclewaysLength: number
   proposedCyclewaysQuery: string
-}
 
+
+  safeStreetsQuery: string
+  safeStreetsLength: number,
+  wikipedia?: string | undefined
+}
 export interface OSMWay {
   type: "way",
   id: number,
