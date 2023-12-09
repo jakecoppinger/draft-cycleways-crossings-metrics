@@ -1,4 +1,7 @@
-import { cachedOverpassTurboRequest, cyclewaysQuery, overpassTurboRequest, relationInfoQuery } from "./api/overpass.js";
+import {
+  cachedOverpassTurboRequest, generateDedicatedCyclewaysQuery,
+  generateOnRoadCycleLanes, generateRelationInfoQuery, generateRoadsQuery, generateSharedPathsQuery,
+} from "./api/overpass.js";
 import { OSMRelation, OSMWay } from "./types.js";
 import { generateWayLengthLookup, generateWayLengthStats, getLengthOfAllWays } from "./utils/osm-geometry-utils.js";
 
@@ -13,7 +16,6 @@ async function saveObjectToJsonFile(object: any, fileName: string) {
   await writeFile(fileName, jsonString);
 }
 
-const jsonRelativeOutputPath = '../cycleway-length-calculator/src/data/'
 const councilOsmRelationIds =
   [
     1251066, // City of sydney
@@ -24,34 +26,46 @@ const councilOsmRelationIds =
 
 async function main() {
 
-  let dataByCouncil: any  = [];
-  for(let i = 0; i < councilOsmRelationIds.length; i++) {
-      const relationId = councilOsmRelationIds[i];
+  let dataByCouncil: any = [];
+  for (let i = 0; i < councilOsmRelationIds.length; i++) {
+    const relationId = councilOsmRelationIds[i];
 
 
-      const relationInfo = (await cachedOverpassTurboRequest(relationInfoQuery(relationId)))[0] as OSMRelation;
-      const councilName = relationInfo.tags.name;
+    const relationInfo = (await cachedOverpassTurboRequest(generateRelationInfoQuery(relationId)))[0] as OSMRelation;
+    const councilName = relationInfo.tags.name;
+
+    const dedicatedCyclewaysQuery = generateDedicatedCyclewaysQuery(relationId)
+    const dedicatedCyclewaysLength = getLengthOfAllWays(
+      await cachedOverpassTurboRequest(dedicatedCyclewaysQuery) as OSMWay[]
+    )
+    const roadsQuery = generateRoadsQuery(relationId)
+    const roadsLength = getLengthOfAllWays(
+      await cachedOverpassTurboRequest(roadsQuery) as OSMWay[]
+    )
+    const onRoadCycleLanesQuery = generateOnRoadCycleLanes(relationId)
+    const onRoadCycleLanesLength = getLengthOfAllWays(
+      await cachedOverpassTurboRequest(onRoadCycleLanesQuery) as OSMWay[]
+    )
+    const sharedPathsQuery = generateSharedPathsQuery(relationId)
+    const sharedPathsLength = getLengthOfAllWays(
+      await cachedOverpassTurboRequest(sharedPathsQuery) as OSMWay[]
+    )
+    
+    // const waysLength = generateWayLengthLookup(rawData);
+    // const waysStats = generateWayLengthStats(rawData, waysLength);
 
 
+    dataByCouncil.push({
+      councilName, relationId, dedicatedCyclewaysLength, roadsLength,
+      onRoadCycleLanesLength, sharedPathsLength, dedicatedCyclewaysQuery, roadsQuery, onRoadCycleLanesQuery, sharedPathsQuery
+    });
+  }
 
-      const overpassQuery = cyclewaysQuery(relationId);
-      const rawData = await cachedOverpassTurboRequest(overpassQuery) as OSMWay[];
-
-      // const waysLength = generateWayLengthLookup(rawData);
-
-      // const waysStats = generateWayLengthStats(rawData, waysLength);
-
-      const lenthAllWays = getLengthOfAllWays(rawData);
-
-      dataByCouncil.push({ councilName, relationId, lenthAllWays });
-    }
-
-    console.log(dataByCouncil);
-  // await saveObjectToJsonFile(
-  //   rawData,
-  //   `${jsonRelativeOutputPath}rawData.json`,
-  // );
-
-  // console.log(l);
+  const jsonRelativeOutputPath = '../cycleway-length-calculator/src/data/'
+  await saveObjectToJsonFile(
+    dataByCouncil,
+    `${jsonRelativeOutputPath}data-by-council.json`,
+  );
+  console.log("Saved data-by-council.json");
 }
 main();

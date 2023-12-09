@@ -7,7 +7,7 @@ function getRandomNumber(): number {
   return Math.floor(Math.random() * 1001);
 }
 
-export const safeStreetsQuery = (relationId: number) => `
+export const generateSafeStreetsQuery = (relationId: number) => `
   [out:json];
 rel(${relationId});map_to_area->.region;
 (
@@ -17,17 +17,52 @@ rel(${relationId});map_to_area->.region;
 out geom;
 `
 
-export const cyclewaysQuery = (relationId: number) => `
+/**
+ * Excludes shared paths like prince alfred park
+ */
+export const generateDedicatedCyclewaysQuery = (relationId: number) => `
   [out:json];
 rel(${relationId});map_to_area->.region;
 (
-  way(area.region)["highway"="cycleway"];
+  way(area.region)["highway"~"cycleway"]["segregated"!="no"]["foot"!~"designated|yes"];
 );
 out geom;
 `;
 
+export const generateSharedPathsQuery = (relationId: number) => `
+[out:json];
+rel(${relationId});map_to_area->.region;
+(
+  way(area.region)["highway"="footway"]["bicycle"="yes"];
+  way(area.region)["highway"="cycleway"]["segregated"="no"];
+way(area.region)["highway"="cycleway"][!"segregated"]["foot"~"yes|designated"];
+);
+out geom;
+  `;
 
-export const relationInfoQuery = (relationId: number) => `
+
+/**
+ * includes living streets. doesn't include pedestrian malls or cycleways
+ */
+export const generateRoadsQuery = (relationId: number) => `
+[out:json];
+rel(${relationId});map_to_area->.region;
+(
+  way(area.region)["highway"~"motorway|trunk|primary|secondary|tertiary|unclassified|residential|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link|living_street|service"];
+);
+out geom;
+  `;
+
+export const generateOnRoadCycleLanes = (relationId: number) => `
+[out:json];
+rel(${relationId});map_to_area->.region;
+(
+  way(area.region)["cycleway"="lane"];
+);
+out geom;
+  `;
+
+export const generateRelationInfoQuery = (relationId: number) => `
 [out:json][timeout:25];
 relation(${relationId});
 out tags;
@@ -37,7 +72,6 @@ out tags;
 export async function cachedOverpassTurboRequest(input: string): Promise<any> {
     const hash = createHash('md5').update(input).digest('hex');
     const cachePath = path.join('./cache', `${hash}.json`);
-    console.log({cachePath});
 
     // Check if the cache file exists
     if (fs.existsSync(cachePath)) {
@@ -69,6 +103,7 @@ export async function overpassTurboRequest(request: string): Promise<(OSMNode | 
   });
 
   if (!response.ok) {
+    console.error(`Request: ${request}`);
     throw new Error(`Fetch error: ${response.statusText}`);
   }
 

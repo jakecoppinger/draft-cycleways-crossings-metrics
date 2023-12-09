@@ -2,7 +2,7 @@
   "name": "strets-length-backend",
   "type": "module",
   "scripts": {
-    "watch-build-start": "ls src/**/*.* | entr -rcs \"npm run  build && npm run start\"",
+    "watch-build-start": "ls src/**/*.* src/*.* | entr -rcs \"npm run  build && npm run start\"",
     "start": "node --max_old_space_size=4096 --trace-warnings  ./dist/index.js",
     "build": "tsc",
     "test": "npx jest",
