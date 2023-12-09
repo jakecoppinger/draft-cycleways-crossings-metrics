@@ -51,6 +51,7 @@ export interface OSMNode {
 }
 
 
+
 export interface GeneratedCouncilData {
   "councilName": string;
   "relationId": number;
@@ -63,9 +64,9 @@ export interface GeneratedCouncilData {
   "onRoadCycleLanesQuery": string;
   "sharedPathsQuery": string;
   // "relationInfoQuery": string;
-  cyclewaysToRoadsRatio: number,
+  cyclewaysToRoadsRatio: number | null,
   /** Includes dedicated cycleways, shared paths, and safe streets */
-  safePathsToRoadsRatio: number
+  safePathsToRoadsRatio: number | null,
 
   /** In sq metres. Not yet working */
   councilArea: number
@@ -79,4 +80,7 @@ export interface GeneratedCouncilData {
   safeStreetsQuery: string
   safeStreetsLength: number,
   wikipedia?: string | undefined
+  wikidata: string | undefined
+  wikidataPopulation: number | null
 }
+
