@@ -25,6 +25,21 @@ export interface OSMWay {
   }
 }
 
+export interface OSMRelation {
+  type: "relation",
+  id: number,
+  tags: {
+    name?: string,
+    type?: string,
+    boundary?: string,
+    admin_level?: string,
+    ref?: string,
+    place?: string,
+    source?: string,
+    wikidata?: string,
+    wikipedia?: string,
+  },
+}
 export interface OSMNode {
   type: "node",
   id: number,

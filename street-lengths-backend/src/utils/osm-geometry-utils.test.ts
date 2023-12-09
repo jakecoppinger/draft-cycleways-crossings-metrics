@@ -28,7 +28,7 @@ describe('calculateWayLength', () => {
     expect(length).toBe(0);
   });
 
-  it.only('return length of 385 when 385 metres apart', () => {
+  it('return length of 385 when 385 metres apart', () => {
     const length = calculateWayLength({
       "type": "way",
       "id": 2949895,
@@ -47,6 +47,6 @@ describe('calculateWayLength', () => {
       "tags": {
       }
     });
-    expect(length).toBe(571);
+    expect(length).toBe(385);
   });
 });

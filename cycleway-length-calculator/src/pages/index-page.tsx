@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../App.css";
-import { overpassTurboRequest, safeStreets } from "../api/overpass";
+import { cycleways, overpassTurboRequest, safeStreets } from "../api/overpass";
 import { OSMWay } from "../types";
 import { WayLengthStat, generateWayLengthLookup, generateWayLengthStats, getLengthOfAllWays } from "../utils/osm-geometry-utils";
 
@@ -13,7 +13,7 @@ export const IndexPageComponent = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const overpassQuery = safeStreets(1251066);
+      const overpassQuery = cycleways(1251066);
       const rawData = await overpassTurboRequest(overpassQuery) as OSMWay[];
       const waysLength = generateWayLengthLookup(rawData);
 
