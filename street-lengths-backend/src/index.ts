@@ -1,9 +1,10 @@
 import {
   cachedOverpassTurboRequest, generateDedicatedCyclewaysQuery,
-  generateOnRoadCycleLanes, generateRelationInfoQuery, generateRoadsQuery, generateSharedPathsQuery,
+  generateOnRoadCycleLanes, generateRelationInfoQuery, generateRelationPointsQuery, generateRoadsQuery, generateSharedPathsQuery,
 } from "./api/overpass.js";
-import { OSMRelation, OSMWay } from "./types.js";
+import { GeneratedCouncilData, OSMNode, OSMRelation, OSMWay } from "./types.js";
 import { getLengthOfAllWays } from "./utils/osm-geometry-utils.js";
+import * as turf from '@turf/turf';
 
 import * as fs from 'fs';
 
@@ -24,16 +25,35 @@ const councilOsmRelationIds =
     6217271, // city of canada bay
   ]
 
+async function generateCouncilArea(relationId: number): Promise<number> {
+  const relationPoints = await cachedOverpassTurboRequest(generateRelationPointsQuery(relationId)) as (OSMNode | OSMWay)[];
+  const coords = (relationPoints
+  .filter((node) => node.type === 'node') as OSMNode[])
+    .filter((node) => {
+      if (node.lat && node.lon) {
+        return true
+      } else {
+        console.log(`Node ${node.id} is missing lat or lon`);
+        return false
+      }
+      })
+    .map((node) => [node.lon, node.lat])
+  coords.push(coords[0]);
+  const polygon = turf.polygon([coords]);
+  const councilArea = turf.area(polygon);
+  return councilArea;
+}
 async function main() {
 
   let dataByCouncil: any = [];
   for (let i = 0; i < councilOsmRelationIds.length; i++) {
     const relationId = councilOsmRelationIds[i];
 
+    const councilArea = await generateCouncilArea(relationId);
 
     const relationInfoQuery = generateRelationInfoQuery(relationId);
     const relationInfo = (await cachedOverpassTurboRequest(relationInfoQuery))[0] as OSMRelation;
-    const councilName = relationInfo.tags.name;
+    const councilName = relationInfo.tags.name || '(area missing name)';
 
     const dedicatedCyclewaysQuery = generateDedicatedCyclewaysQuery(relationId)
     const dedicatedCyclewaysLength = getLengthOfAllWays(
@@ -58,13 +78,14 @@ async function main() {
     // const waysLength = generateWayLengthLookup(rawData);
     // const waysStats = generateWayLengthStats(rawData, waysLength);
 
-
-    dataByCouncil.push({
+    const generatedCouncilData: GeneratedCouncilData = {
       councilName, relationId, dedicatedCyclewaysLength, roadsLength,
       onRoadCycleLanesLength, sharedPathsLength,
       dedicatedCyclewaysQuery, roadsQuery, onRoadCycleLanesQuery, sharedPathsQuery, relationInfoQuery,
-      cyclewaysToRoadsRatio, sharedAndCyclewaysToRoadsRatio
-    });
+      cyclewaysToRoadsRatio, sharedAndCyclewaysToRoadsRatio, councilArea
+    };
+
+    dataByCouncil.push(generatedCouncilData);
   }
 
   const jsonRelativeOutputPath = '../cycleway-length-calculator/src/data/'

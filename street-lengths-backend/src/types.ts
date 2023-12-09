@@ -48,3 +48,23 @@ export interface OSMNode {
   tags: {
   },
 }
+
+
+export interface GeneratedCouncilData {
+  "councilName": string;
+  "relationId": number;
+  "dedicatedCyclewaysLength": number;
+  "roadsLength": number;
+  "onRoadCycleLanesLength": number;
+  "sharedPathsLength": number;
+  "dedicatedCyclewaysQuery": string;
+  "roadsQuery": string;
+  "onRoadCycleLanesQuery": string;
+  "sharedPathsQuery": string;
+  "relationInfoQuery": string;
+  cyclewaysToRoadsRatio: number,
+  sharedAndCyclewaysToRoadsRatio: number
+
+  /** In sq metres */
+  councilArea: number
+}

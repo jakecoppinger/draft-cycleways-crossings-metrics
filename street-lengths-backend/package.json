@@ -9,6 +9,7 @@
     "test:watch": "ls test/*.ts src/*.ts src/**/*.ts | entr -rcs 'yarn test'"
   },
   "dependencies": {
+    "@turf/turf": "^6.5.0"
   },
   "devDependencies": {
     "@types/jest": "^29.2.5",
@@ -20,7 +21,9 @@
     "typescript": "^4.9.4"
   },
   "jest": {
-  "testPathIgnorePatterns": ["dist"],
+    "testPathIgnorePatterns": [
+      "dist"
+    ],
     "moduleFileExtensions": [
       "ts",
       "tsx",

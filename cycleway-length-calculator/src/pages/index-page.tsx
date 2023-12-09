@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "../App.css";
-import { CouncilRow } from "../types";
+import { GeneratedCouncilData } from "../types";
 import dataByCouncil from "../data/data-by-council.json";
 import { LinkToOverpassQuery } from "../components/LinkToOverpassQuery";
 
-// sort by which councils have highest ratio of cycleable paths to roads
-const orderedDataByCouncil = dataByCouncil.sort((a, b) => {
-  return b.sharedAndCyclewaysToRoadsRatio - a.sharedAndCyclewaysToRoadsRatio;
-});
 export const IndexPageComponent = () => {
   // const [totalLength, setTotalLength] = useState<number>(0);
 
@@ -20,12 +16,16 @@ export const IndexPageComponent = () => {
   return (
     <div>
       <h1>Hello!</h1>
-      <CouncilTable dataByCouncil={orderedDataByCouncil}></CouncilTable>
+      <CouncilTable dataByCouncil={dataByCouncil}></CouncilTable>
     </div>
   );
 };
 
-const CouncilTable = ({ dataByCouncil }: { dataByCouncil: CouncilRow[] }) => {
+const CouncilTable = ({
+  dataByCouncil,
+}: {
+  dataByCouncil: GeneratedCouncilData[];
+}) => {
   return (
     <table>
       <thead>
@@ -48,7 +48,7 @@ const CouncilTable = ({ dataByCouncil }: { dataByCouncil: CouncilRow[] }) => {
   );
 };
 
-const CouncilTableRow = ({ row }: { row: CouncilRow }) => {
+const CouncilTableRow = ({ row }: { row: GeneratedCouncilData }) => {
   const {
     relationInfoQuery,
     councilName,
@@ -61,8 +61,8 @@ const CouncilTableRow = ({ row }: { row: CouncilRow }) => {
     onRoadCycleLanesQuery,
     onRoadCycleLanesLength,
 
-  cyclewaysToRoadsRatio,
-  sharedAndCyclewaysToRoadsRatio
+    cyclewaysToRoadsRatio,
+    sharedAndCyclewaysToRoadsRatio,
   } = row;
 
   return (
@@ -72,12 +72,9 @@ const CouncilTableRow = ({ row }: { row: CouncilRow }) => {
           {councilName}
         </LinkToOverpassQuery>
       </td>
-      <td>
-          {formatRatio(sharedAndCyclewaysToRoadsRatio)}
-      </td>
-      <td>
-          {formatRatio(cyclewaysToRoadsRatio)}
-      </td>
+
+      <td>{formatRatio(sharedAndCyclewaysToRoadsRatio)}</td>
+      <td>{formatRatio(cyclewaysToRoadsRatio)}</td>
 
       <td>
         <LinkToOverpassQuery queryStr={roadsQuery}>
@@ -109,4 +106,9 @@ function formatLengthInKm(lengthInMetres: number): string {
 
 function formatRatio(ratio: number): string {
   return `${(ratio * 100).toFixed(1)}%`;
+}
+
+/** Takes an area in square metres and formats it in square kilometres  */
+function formatArea(areaInSquareMetres: number): string {
+  return `${(areaInSquareMetres / 1000000).toFixed(1)} km²`;
 }
