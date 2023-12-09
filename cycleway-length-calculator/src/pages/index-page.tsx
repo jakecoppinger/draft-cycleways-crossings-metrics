@@ -1,41 +1,112 @@
 import React, { useEffect, useState } from "react";
 import "../App.css";
-import { cycleways, overpassTurboRequest, safeStreets } from "../api/overpass";
-import { OSMWay } from "../types";
-import { WayLengthStat, generateWayLengthLookup, generateWayLengthStats, getLengthOfAllWays } from "../utils/osm-geometry-utils";
+import { CouncilRow } from "../types";
+import dataByCouncil from "../data/data-by-council.json";
+import { LinkToOverpassQuery } from "../components/LinkToOverpassQuery";
 
-
-
+// sort by which councils have highest ratio of cycleable paths to roads
+const orderedDataByCouncil = dataByCouncil.sort((a, b) => {
+  return b.sharedAndCyclewaysToRoadsRatio - a.sharedAndCyclewaysToRoadsRatio;
+});
 export const IndexPageComponent = () => {
-  const [rawData, setRawData] = useState<OSMWay[]>([]);
-  const [wayStats, setWayStats] = useState<WayLengthStat[]>([]);
-  const [totalLength, setTotalLength] = useState<number>(0);
+  // const [totalLength, setTotalLength] = useState<number>(0);
 
-  useEffect(() => {
-    async function fetchData() {
-      const overpassQuery = cycleways(1251066);
-      const rawData = await overpassTurboRequest(overpassQuery) as OSMWay[];
-      const waysLength = generateWayLengthLookup(rawData);
-
-      const waysStats = generateWayLengthStats(rawData, waysLength);
-      setWayStats(waysStats);
-
-      const l = getLengthOfAllWays(rawData);
-      setTotalLength(l);
-      console.log(l);
-      setRawData(rawData);
-    }
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //   }
+  //   fetchData();
+  // }, []);
 
   return (
     <div>
       <h1>Hello!</h1>
-      <h2>Total length: {totalLength}</h2>
-      <h3>Ways stats:</h3>
-      <p>{JSON.stringify(wayStats, null, 2)}</p>
-      <h1>Raw data</h1>
-      <p>{JSON.stringify(rawData, null, 2)}</p>
+      <CouncilTable dataByCouncil={orderedDataByCouncil}></CouncilTable>
     </div>
   );
 };
+
+const CouncilTable = ({ dataByCouncil }: { dataByCouncil: CouncilRow[] }) => {
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Council name</th>
+          <th>Shared and dedicated paths length / roads (%)</th>
+          <th>Dedicated cycleways length / roads (%)</th>
+          <th>Roads (km)</th>
+          <th>Dedicated cycleways (km)</th>
+          <th>Shared paths (km)</th>
+          <th>On road lanes ("dooring lane") (km)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {dataByCouncil.map((row) => (
+          <CouncilTableRow key={row.relationId} row={row} />
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+const CouncilTableRow = ({ row }: { row: CouncilRow }) => {
+  const {
+    relationInfoQuery,
+    councilName,
+    dedicatedCyclewaysLength,
+    dedicatedCyclewaysQuery,
+    roadsLength,
+    roadsQuery,
+    sharedPathsLength,
+    sharedPathsQuery,
+    onRoadCycleLanesQuery,
+    onRoadCycleLanesLength,
+
+  cyclewaysToRoadsRatio,
+  sharedAndCyclewaysToRoadsRatio
+  } = row;
+
+  return (
+    <tr>
+      <td>
+        <LinkToOverpassQuery queryStr={relationInfoQuery}>
+          {councilName}
+        </LinkToOverpassQuery>
+      </td>
+      <td>
+          {formatRatio(sharedAndCyclewaysToRoadsRatio)}
+      </td>
+      <td>
+          {formatRatio(cyclewaysToRoadsRatio)}
+      </td>
+
+      <td>
+        <LinkToOverpassQuery queryStr={roadsQuery}>
+          {formatLengthInKm(roadsLength)}
+        </LinkToOverpassQuery>
+      </td>
+      <td>
+        <LinkToOverpassQuery queryStr={dedicatedCyclewaysQuery}>
+          {formatLengthInKm(dedicatedCyclewaysLength)}
+        </LinkToOverpassQuery>
+      </td>
+      <td>
+        <LinkToOverpassQuery queryStr={sharedPathsQuery}>
+          {formatLengthInKm(sharedPathsLength)}
+        </LinkToOverpassQuery>
+      </td>
+      <td>
+        <LinkToOverpassQuery queryStr={onRoadCycleLanesQuery}>
+          {formatLengthInKm(onRoadCycleLanesLength)}
+        </LinkToOverpassQuery>
+      </td>
+    </tr>
+  );
+};
+
+function formatLengthInKm(lengthInMetres: number): string {
+  return `${(lengthInMetres / 1000).toFixed(2)}`;
+}
+
+function formatRatio(ratio: number): string {
+  return `${(ratio * 100).toFixed(1)}%`;
+}

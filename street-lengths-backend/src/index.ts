@@ -3,7 +3,7 @@ import {
   generateOnRoadCycleLanes, generateRelationInfoQuery, generateRoadsQuery, generateSharedPathsQuery,
 } from "./api/overpass.js";
 import { OSMRelation, OSMWay } from "./types.js";
-import { generateWayLengthLookup, generateWayLengthStats, getLengthOfAllWays } from "./utils/osm-geometry-utils.js";
+import { getLengthOfAllWays } from "./utils/osm-geometry-utils.js";
 
 import * as fs from 'fs';
 
@@ -31,7 +31,8 @@ async function main() {
     const relationId = councilOsmRelationIds[i];
 
 
-    const relationInfo = (await cachedOverpassTurboRequest(generateRelationInfoQuery(relationId)))[0] as OSMRelation;
+    const relationInfoQuery = generateRelationInfoQuery(relationId);
+    const relationInfo = (await cachedOverpassTurboRequest(relationInfoQuery))[0] as OSMRelation;
     const councilName = relationInfo.tags.name;
 
     const dedicatedCyclewaysQuery = generateDedicatedCyclewaysQuery(relationId)
@@ -50,14 +51,19 @@ async function main() {
     const sharedPathsLength = getLengthOfAllWays(
       await cachedOverpassTurboRequest(sharedPathsQuery) as OSMWay[]
     )
-    
+
+    const cyclewaysToRoadsRatio = dedicatedCyclewaysLength / roadsLength;
+    const sharedAndCyclewaysToRoadsRatio = (dedicatedCyclewaysLength + sharedPathsLength) / roadsLength;
+
     // const waysLength = generateWayLengthLookup(rawData);
     // const waysStats = generateWayLengthStats(rawData, waysLength);
 
 
     dataByCouncil.push({
       councilName, relationId, dedicatedCyclewaysLength, roadsLength,
-      onRoadCycleLanesLength, sharedPathsLength, dedicatedCyclewaysQuery, roadsQuery, onRoadCycleLanesQuery, sharedPathsQuery
+      onRoadCycleLanesLength, sharedPathsLength,
+      dedicatedCyclewaysQuery, roadsQuery, onRoadCycleLanesQuery, sharedPathsQuery, relationInfoQuery,
+      cyclewaysToRoadsRatio, sharedAndCyclewaysToRoadsRatio
     });
   }
 
