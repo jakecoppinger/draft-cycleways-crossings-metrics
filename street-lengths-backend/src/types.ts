@@ -15,6 +15,7 @@ export interface OSMWay {
     width?: string,
     bicycle?: string,
     surface?: string,
+    opening_date?: string,
   },
 
   bounds: {
@@ -65,6 +66,11 @@ export interface GeneratedCouncilData {
   cyclewaysToRoadsRatio: number,
   sharedAndCyclewaysToRoadsRatio: number
 
-  /** In sq metres */
+  /** In sq metres. Not yet working */
   councilArea: number
+
+  underConstructionCyclewaysQuery: string
+  underConstructionCyclewaysLength: number
+  proposedCyclewaysLength: number
+  proposedCyclewaysQuery: string
 }

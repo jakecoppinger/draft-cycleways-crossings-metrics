@@ -37,6 +37,8 @@ const CouncilTable = ({
           <th>Dedicated cycleways (km)</th>
           <th>Shared paths (km)</th>
           <th>On road lanes ("dooring lane") (km)</th>
+          <th>Under construction cycleways (km)</th>
+          <th>Proposed cycleways (km)</th>
         </tr>
       </thead>
       <tbody>
@@ -63,6 +65,10 @@ const CouncilTableRow = ({ row }: { row: GeneratedCouncilData }) => {
 
     cyclewaysToRoadsRatio,
     sharedAndCyclewaysToRoadsRatio,
+    underConstructionCyclewaysLength,
+    underConstructionCyclewaysQuery,
+    proposedCyclewaysLength,
+    proposedCyclewaysQuery
   } = row;
 
   return (
@@ -94,6 +100,16 @@ const CouncilTableRow = ({ row }: { row: GeneratedCouncilData }) => {
       <td>
         <LinkToOverpassQuery queryStr={onRoadCycleLanesQuery}>
           {formatLengthInKm(onRoadCycleLanesLength)}
+        </LinkToOverpassQuery>
+      </td>
+      <td>
+        <LinkToOverpassQuery queryStr={underConstructionCyclewaysQuery}>
+          {formatLengthInKm(underConstructionCyclewaysLength)}
+        </LinkToOverpassQuery>
+      </td>
+      <td>
+        <LinkToOverpassQuery queryStr={proposedCyclewaysQuery}>
+          {formatLengthInKm(proposedCyclewaysLength)}
         </LinkToOverpassQuery>
       </td>
     </tr>

@@ -1,4 +1,5 @@
 
+
 export interface GeneratedCouncilData {
   "councilName": string;
   "relationId": number;
@@ -13,8 +14,14 @@ export interface GeneratedCouncilData {
   "relationInfoQuery": string;
   cyclewaysToRoadsRatio: number,
   sharedAndCyclewaysToRoadsRatio: number
-  /** In sq metres */
+
+  /** In sq metres. Not yet working */
   councilArea: number
+
+  underConstructionCyclewaysQuery: string
+  underConstructionCyclewaysLength: number
+  proposedCyclewaysLength: number
+  proposedCyclewaysQuery: string
 }
 
 export interface OSMWay {

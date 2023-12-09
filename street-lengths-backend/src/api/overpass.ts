@@ -58,9 +58,28 @@ export const generateOnRoadCycleLanes = (relationId: number) => `
 rel(${relationId});map_to_area->.region;
 (
   way(area.region)["cycleway"="lane"];
+  way(area.region)["cycleway:left"="lane"];
+  way(area.region)["cycleway:right"="lane"];
 );
 out geom;
-  `;
+`;
+
+export const generateProposedCyclewaysQuery = (relationId: number) => `
+[out:json];
+rel(${relationId});map_to_area->.region;
+(
+  way(area.region)["highway"="proposed"]["proposed"="cycleway"];
+);
+out geom;
+`;
+export const generateUnderConstructionCyclewaysQuery = (relationId: number) => `
+[out:json];
+rel(${relationId});map_to_area->.region;
+(
+  way(area.region)["highway"="construction"]["construction"="cycleway"];
+);
+out geom;
+`;
 
 export const generateRelationInfoQuery = (relationId: number) => `
 [out:json][timeout:25];
